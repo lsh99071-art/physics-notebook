@@ -1,0 +1,1862 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#3768d4">
+<title>물리 노트 — 눈으로 이해하는 역학</title>
+<style>
+:root{
+  --ink:#172943;--muted:#61738b;--line:#dce4ef;
+  --blue:#3768d4;--paper:#fff;--bg:#f2f5fa;
+  --green:#16866e;--orange:#d65c38;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+  line-height:1.65;
+}
+button,input,select{font:inherit}
+button,select,input[type=checkbox],input[type=range]{cursor:pointer}
+button,select,input[type=number]{
+  min-height:44px;border:1px solid var(--line);
+  border-radius:10px;background:white;color:var(--ink);
+}
+button{padding:9px 15px;font-weight:650;touch-action:manipulation}
+button:hover{border-color:#90a9d6;background:#f4f7fd}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--blue);border-color:var(--blue);color:white}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+  outline:3px solid #91b5ff;outline-offset:3px;
+}
+select{padding:8px 12px;max-width:100%}
+input[type=range]{accent-color:var(--blue);min-width:0;touch-action:pan-y}
+input[type=checkbox]{width:19px;height:19px;accent-color:var(--blue)}
+input[type=number]{width:88px;padding:6px 8px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(24px,4vw,36px);margin-bottom:4px;letter-spacing:-1px}
+h2{font-size:19px;margin-bottom:14px}
+h3{font-size:16px;margin-bottom:8px}
+p{margin-bottom:12px}
+small,.small{font-size:13px;color:var(--muted)}
+header{
+  max-width:1440px;margin:auto;padding:28px 24px 18px;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+}
+.brand{font-size:12px;letter-spacing:2px;font-weight:800;color:var(--blue)}
+.subtitle{color:var(--muted);margin:0}
+.header-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.layout{
+  max-width:1440px;margin:auto;padding:0 24px 30px;
+  display:grid;grid-template-columns:280px minmax(0,1fr);
+  grid-template-areas:"settings stage" "settings learning";
+  align-items:start;gap:18px;
+}
+.settings{grid-area:settings}
+.stage{grid-area:stage;min-width:0}
+.learning{grid-area:learning;min-width:0;display:grid;gap:18px}
+.card{
+  border:1px solid var(--line);background:var(--paper);
+  border-radius:18px;padding:20px;
+  box-shadow:0 5px 22px #233b6505;
+}
+.settings .card{position:sticky;top:16px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.between{justify-content:space-between}
+.field{display:block;margin-bottom:18px}
+.field>span{font-size:14px;font-weight:650;display:block;margin-bottom:6px}
+.field>div{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:10px;align-items:center}
+.check{display:flex;align-items:center;gap:8px;margin:10px 0 16px;font-size:14px}
+#error{color:#af3628;font-size:14px;white-space:pre-line}
+#notice{font-size:13px;color:var(--green);margin:8px 0 0}
+.scene-wrap{
+  overflow:hidden;background:#fcfdff;border:1px solid var(--line);
+  border-radius:14px;margin:12px 0;
+}
+#scene{display:block;width:100%;height:auto;max-height:560px}
+svg text{font-family:inherit;font-size:14px;fill:var(--muted)}
+svg .diagram-title{font-size:19px;font-weight:750;fill:var(--ink)}
+svg .fixture{fill:none;stroke:#8495ab;stroke-width:5;stroke-linecap:round}
+svg .wheel{fill:#f4f7fb;stroke:#8495ab;stroke-width:4}
+svg .rope{fill:none;stroke:#b6812d;stroke-width:4}
+svg .body{cursor:pointer;touch-action:manipulation}
+svg .body text{font-size:21px;fill:white;font-weight:750}
+svg .body.selected rect{stroke:#163768;stroke-width:3}
+svg .force text{
+  font-size:12px;font-weight:650;
+  paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round;
+}
+.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.controls label{font-size:14px}
+.timeline{display:flex;gap:12px;align-items:center;margin-top:16px}
+#timeline{width:100%;min-height:36px}
+#clock{white-space:nowrap;font-variant-numeric:tabular-nums}
+#status{
+  background:#eef4ff;border-left:4px solid var(--blue);
+  border-radius:8px;padding:11px 13px;font-size:14px;margin:12px 0;
+}
+#initial{
+  display:flex;flex-wrap:wrap;gap:6px 18px;
+  background:#f4f7fc;padding:12px 14px;border-radius:10px;margin:16px 0 10px;
+}
+#initial strong{color:var(--blue)}
+#initial small{width:100%}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid #e8edf5;text-align:right}
+th:first-child{text-align:left}
+thead th{background:#f7f9fd;color:var(--muted);font-weight:650}
+td{font-variant-numeric:tabular-nums}
+#current>.small{margin:10px 0 0}
+details>summary{
+  cursor:pointer;font-weight:650;min-height:40px;padding:6px 0;
+  touch-action:manipulation;
+}
+details>p:last-child{margin-bottom:0}
+.details-body{padding-top:10px}
+#steps{
+  display:grid;grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:6px;margin-bottom:20px;
+}
+#steps button{
+  padding:8px 3px;min-height:44px;font-size:14px;background:#f7f9fd;
+}
+#steps button span{display:none}
+#steps button[aria-current=step]{background:var(--blue);color:white;border-color:var(--blue)}
+#stepTitle{font-size:22px}
+#stepContent p{overflow-wrap:anywhere}
+.math{
+  font-family:Cambria,"Times New Roman",system-ui,serif;
+  font-size:clamp(17px,2.4vw,22px);
+  background:#f3f6fc;border-left:3px solid #b3c9f0;
+  padding:12px 14px;border-radius:7px;line-height:1.8;
+}
+.formula{border:1px solid var(--line);border-radius:12px;margin:12px 0;padding:10px 14px}
+.formula p{font-size:15px;margin:10px 0}
+.formula p b{display:block;color:var(--blue)}
+#easy{background:#fff8e9;border:1px solid #f0d89e;border-radius:12px;padding:16px}
+.lesson-controls{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:20px}
+#lessonCaption{font-size:13px;color:var(--muted)}
+.lesson-fbd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.lesson-fbd svg{width:100%;height:auto}
+.force-layout{display:grid;grid-template-columns:minmax(220px,.9fr) 1.1fr;align-items:center;gap:20px}
+#fbd svg{width:100%;max-height:300px;display:block}
+#bodyA[aria-pressed=true],#bodyB[aria-pressed=true]{background:#e9f0ff;border-color:var(--blue)}
+#forceEquation{font-size:20px}
+#graph{width:100%;height:auto;display:block}
+.quiz{margin-top:24px;border-top:1px solid var(--line);padding-top:18px}
+.quiz .row select{flex:1;min-width:170px}
+#quizResult{font-size:14px;margin:10px 0 0}
+#testReport{font-size:13px;padding-left:20px}
+footer{max-width:1440px;padding:0 24px 30px;margin:auto;font-size:13px;color:var(--muted)}
+.scope{font-size:14px}
+@media(min-width:1250px){
+  #steps button span{display:block;font-size:10px;font-weight:500;line-height:1.4;margin-top:4px}
+}
+@media(max-width:900px){
+  header{align-items:flex-start;flex-direction:column;padding:20px 14px 16px}
+  .header-controls{width:100%}
+  #type{flex:1}
+  .layout{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"stage" "settings" "learning";
+    padding:0 14px 24px;gap:14px;
+  }
+  .settings .card{position:static}
+  #fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+  .card{padding:16px;border-radius:14px}
+  .force-layout{gap:8px}
+}
+@media(max-width:540px){
+  #fields{grid-template-columns:1fr}
+  .force-layout{grid-template-columns:1fr}
+  .lesson-fbd{grid-template-columns:1fr}
+  #stepTitle{font-size:19px}
+  .controls button{flex:1}
+  .controls label{width:100%}
+  .lesson-controls button{flex:1}
+  .lesson-controls #easyBtn{flex-basis:100%;order:3}
+  th,td{padding:7px 5px;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">PHYSICS NOTEBOOK</div>
+    <h1>물리 노트</h1>
+    <p class="subtitle">그림으로 관찰하고, 필요한 순간에 식과 풀이를 확인하세요.</p>
+  </div>
+  <div class="header-controls">
+    <label for="type" class="small">문제 유형</label>
+    <select id="type">
+      <option value="atwood">도르래 양쪽의 두 물체</option>
+      <option value="table">수평면과 도르래</option>
+      <option value="incline">경사면 위 한 물체</option>
+    </select>
+    <button id="preset" type="button">기본 예제</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="settings">
+    <section class="card">
+      <h2>문제 조건</h2>
+      <p class="small">조건을 바꾸면 처음 위치로 돌아가며 그림과 계산이 함께 갱신됩니다.</p>
+      <div id="fields"></div>
+      <p id="error" role="alert"></p>
+      <div class="row">
+        <button id="save" type="button">조건 저장</button>
+        <button id="load" type="button">불러오기</button>
+      </div>
+      <p id="notice" role="status"></p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <details class="scope">
+        <summary>계산 조건과 지원 범위</summary>
+        <div class="details-body">
+          <p>늘어나지 않는 질량 없는 줄, 질량과 마찰이 없는 고정 도르래, 고정된 면을 가정합니다.</p>
+          <p>도르래 문제는 정지 상태에서 출발합니다. 경사면 문제에는 초기 속도를 줄 수 있습니다.</p>
+          <p>정지 마찰계수와 운동 마찰계수를 구분합니다. 운동 마찰계수는 최대 정지 마찰계수 이하로 설정하세요.</p>
+          <p>관찰 거리는 왕복을 포함한 총 이동 거리입니다. 별도로 설정한 경계가 더 가까우면 그 경계에서 계산 구간을 끝냅니다.</p>
+          <p>충돌, 바닥에 닿은 뒤의 운동, 줄의 느슨해짐, 이동 도르래는 계산하지 않습니다. 경계 이후의 운동을 정답처럼 표시하지 않습니다.</p>
+          <p>이번 버전은 고등학교 역학의 기본 원리를 다룹니다. 2022 개정 교육과정 전체 또는 특정 교과서의 모든 내용을 구현한 것은 아닙니다.</p>
+          <p>포물선, 용수철, 경사면과 도르래의 결합 문제는 후속 구현 대상입니다.</p>
+        </div>
+      </details>
+    </section>
+  </aside>
+
+  <section class="stage card" aria-label="문제 시뮬레이션">
+    <div class="row between">
+      <h2 style="margin:0">문제 그림</h2>
+      <div class="row">
+        <label class="check" style="margin:0"><input id="forces" type="checkbox" checked> 힘</label>
+        <label class="check" style="margin:0"><input id="motion" type="checkbox" checked> 속도·가속도 방향</label>
+      </div>
+    </div>
+
+    <div class="scene-wrap">
+      <svg id="scene" viewBox="0 0 900 490" role="img" aria-label="현재 조건의 물리 문제 그림"></svg>
+    </div>
+
+    <div class="controls">
+      <button id="play" type="button" class="primary">▶ 재생</button>
+      <button id="reset" type="button">처음 위치로</button>
+      <label>재생 속도
+        <select id="speed">
+          <option value="0.1">0.1배</option>
+          <option value="0.25" selected>0.25배</option>
+          <option value="0.5">0.5배</option>
+          <option value="1">1배</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="timeline">
+      <input id="timeline" type="range" min="0" max="1" step="any" value="0" aria-label="관찰할 물리 시간">
+      <span id="clock">t = 0 s</span>
+    </div>
+
+    <p id="status" role="status">초기 장면을 준비하고 있습니다.</p>
+    <div id="initial"></div>
+
+    <details open>
+      <summary>현재 물리량 확인</summary>
+      <div id="current" class="details-body"></div>
+    </details>
+  </section>
+
+  <div class="learning">
+    <section class="card">
+      <details open>
+        <summary>자유물체도와 운동 방정식</summary>
+        <div class="details-body">
+          <div class="row">
+            <button id="bodyA" type="button" aria-pressed="true">A 분석</button>
+            <button id="bodyB" type="button" aria-pressed="false">B 분석</button>
+          </div>
+          <div class="force-layout">
+            <div id="fbd"></div>
+            <div>
+              <p id="forceEquation" class="math"></p>
+              <p id="forceNote" class="small"></p>
+              <p class="small">
+                <span style="color:#d45a43">● 중력</span>　
+                <span style="color:#16866e">● 수직항력</span>　
+                <span style="color:#8258c1">● 장력</span>　
+                <span style="color:#a765ae">● 마찰력</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>필요한 풀이 단계 선택</h2>
+      <p class="small">원하는 단계를 바로 누르거나 한 단계씩 읽어 보세요. 재생과 독립적으로 작동합니다.</p>
+      <nav id="steps" aria-label="풀이 단계"></nav>
+      <h3 id="stepTitle"></h3>
+      <p id="lessonCaption"></p>
+      <div id="stepContent"></div>
+      <p id="easy" hidden></p>
+      <div class="lesson-controls">
+        <button id="prev" type="button">이전 단계</button>
+        <button id="easyBtn" type="button" aria-expanded="false">이해가 안 돼, 더 쉽게</button>
+        <button id="next" type="button" class="primary">이해했어, 다음 단계</button>
+      </div>
+
+      <div class="quiz">
+        <h3>가볍게 확인</h3>
+        <p>알짜힘이 0이면 물체는 반드시 정지해 있을까요?</p>
+        <div class="row">
+          <select id="quiz" aria-label="확인 질문의 답">
+            <option value="">답 선택</option>
+            <option value="a">반드시 정지해 있다</option>
+            <option value="b">움직이고 있을 수도 있다</option>
+          </select>
+          <button id="quizSubmit" type="button">답 확인</button>
+        </div>
+        <p id="quizResult" role="status"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary>현재 시간의 속도·위치 계산</summary>
+        <div id="kinematics" class="details-body"></div>
+      </details>
+    </section>
+
+    <section class="card">
+      <details open>
+        <summary>시간에 따른 그래프</summary>
+        <div class="details-body">
+          <label for="graphKind" class="small">표시할 물리량</label>
+          <select id="graphKind">
+            <option value="q">변위</option>
+            <option value="v">속도</option>
+            <option value="a">가속도</option>
+          </select>
+          <svg id="graph" viewBox="0 0 720 190" role="img" aria-label="시간에 따른 물리량 그래프"></svg>
+          <p class="small">연결된 물체는 각자 정한 + 방향을 기준으로 같은 그래프를 사용합니다. 세로 눈금은 0을 기준으로 위가 +, 아래가 −입니다.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary>계산·초기화 검사 <span id="testSummary"></span></summary>
+        <div class="details-body">
+          <button id="runTests" type="button">검사 다시 실행</button>
+          <ul id="testReport"></ul>
+          <p class="small">이 검사는 계산과 기본 화면 생성을 확인합니다. 모든 기기의 실제 터치·브라우저 호환성을 보증하는 검사는 아닙니다.</p>
+        </div>
+      </details>
+    </section>
+  </div>
+</main>
+
+<footer>
+  물리 노트 1.0 · 외부 라이브러리·AI API·서버 없이 작동합니다.
+  소수는 반올림한 근삿값이며 내부 계산에는 반올림 전 값을 사용합니다.
+</footer>
+<noscript>이 사이트를 이용하려면 브라우저에서 JavaScript를 허용해야 합니다.</noscript>
+
+<script>
+"use strict";
+
+/* ---------------- 물리 계산: 화면과 독립적인 순수 함수 ---------------- */
+
+function createPhysics(){
+  const E=1e-9;
+  const defaults={
+    type:"atwood",mA:2,mB:3,g:10,theta:30,
+    muS:0.3,muK:0.2,friction:false,v0:0,distance:2
+  };
+
+  function normalize(x){
+    const p={...defaults,...x};
+    ["mA","mB","g","theta","muS","muK","v0","distance"].forEach(k=>{
+      p[k]=Number(p[k]);
+      if(!Number.isFinite(p[k])){
+        throw Error("조건에 유효한 숫자를 입력하세요.");
+      }
+    });
+    if(!["atwood","table","incline"].includes(p.type)){
+      throw Error("지원하지 않는 문제 유형입니다.");
+    }
+    if(
+      p.mA<0.1||p.mA>20||p.mB<0.1||p.mB>20||
+      p.g<1||p.g>20||p.theta<0||p.theta>60||
+      p.distance<0.25||p.distance>4||Math.abs(p.v0)>4||
+      p.muS<0||p.muS>1.5||p.muK<0||p.muK>p.muS
+    ){
+      throw Error("설정 범위를 확인하세요. 운동 마찰계수는 정지 마찰계수 이하로 설정하세요.");
+    }
+    return p;
+  }
+
+  function phase(p,v){
+    const th=p.theta*Math.PI/180,m=p.mA,g=p.g;
+
+    if(p.type==="atwood"){
+      const a=(p.mB-m)*g/(m+p.mB);
+      const T=m*(g+a);
+      return {
+        a,T,N:0,f:0,drive:(p.mB-m)*g,M:m+p.mB,
+        mode:Math.abs(a)<E?"balance":"moving"
+      };
+    }
+
+    const N=p.type==="table"?m*g:m*g*Math.cos(th);
+    const drive=p.type==="table"?p.mB*g:m*g*Math.sin(th);
+    const M=p.type==="table"?m+p.mB:m;
+    const mus=p.friction?p.muS:0;
+    const muk=p.friction?p.muK:0;
+
+    const staticState=Math.abs(v)<E&&drive<=mus*N+E;
+    const f=staticState
+      ?-drive
+      :-Math.sign(Math.abs(v)>E?v:drive)*muk*N;
+
+    const a=staticState?0:(drive+f)/M;
+    const T=p.type==="table"?p.mB*(g-a):0;
+
+    return {
+      a,T,N,f,drive,M,
+      mode:staticState?"static":"moving"
+    };
+  }
+
+  function hit(v,a,d){
+    if(Math.abs(a)<E){
+      return Math.abs(v)>E&&d/v>E?d/v:Infinity;
+    }
+    const disc=v*v+2*a*d;
+    if(disc<-E)return Infinity;
+
+    const root=Math.sqrt(Math.max(0,disc));
+    return Math.min(
+      ...[(-v+root)/a,(-v-root)/a].filter(t=>t>E),
+      Infinity
+    );
+  }
+
+  function solve(input){
+    const p=normalize(input),segments=[];
+    let q=0;
+    let v=p.type==="incline"?p.v0:0;
+    let time=0,travel=0,end="distance";
+
+    for(let i=0;i<5;i++){
+      const z=phase(p,v);
+
+      if(Math.abs(v)<E&&Math.abs(z.a)<E){
+        segments.push({...z,t0:time,duration:0,q0:q,v0:0});
+        end="rest";
+        break;
+      }
+
+      const dir=Math.abs(v)>E?Math.sign(v):Math.sign(z.a);
+      const td=hit(v,z.a,dir*(p.distance-travel));
+      const tb=Math.min(
+        hit(v,z.a,3-q),
+        hit(v,z.a,-3-q)
+      );
+      const ts=v*z.a<-E?-v/z.a:Infinity;
+      const dt=Math.min(td,tb,ts);
+
+      if(!Number.isFinite(dt)){
+        throw Error("관찰 구간을 계산하지 못했습니다.");
+      }
+
+      segments.push({
+        ...z,t0:time,duration:dt,q0:q,v0:v
+      });
+
+      const next=q+v*dt+0.5*z.a*dt*dt;
+      travel+=Math.abs(next-q);
+      q=next;
+      v+=z.a*dt;
+      time+=dt;
+
+      if(tb<=dt+E&&tb<=td+E){
+        end="boundary";
+        break;
+      }
+
+      if(td<=dt+E){
+        if(Math.abs(v)<E&&Math.abs(phase(p,0).a)<E){
+          segments.push({
+            ...phase(p,0),t0:time,duration:0,q0:q,v0:0
+          });
+          end="rest";
+        }else{
+          end="distance";
+        }
+        break;
+      }
+
+      v=0;
+    }
+
+    return {
+      p,segments,duration:time,end,travel,
+      initial:segments[0]
+    };
+  }
+
+  function at(r,t){
+    t=Math.max(0,Math.min(r.duration,t));
+    const s=r.segments.find(z=>t<z.t0+z.duration-E)
+      ||r.segments[r.segments.length-1];
+
+    const dt=Math.max(0,Math.min(s.duration,t-s.t0));
+
+    return {
+      ...s,
+      q:s.q0+s.v0*dt+0.5*s.a*dt*dt,
+      v:s.v0+s.a*dt,
+      t
+    };
+  }
+
+  function tests(){
+    const results=[];
+    const near=(a,b)=>Math.abs(a-b)<1e-7;
+
+    function check(name,fn){
+      try{
+        if(!fn())throw Error("예상값 불일치");
+        results.push({name,ok:true});
+      }catch(e){
+        results.push({name,ok:false,error:e.message});
+      }
+    }
+
+    check("도르래: 2 kg, 3 kg → a=2, T=24",()=>{
+      const r=solve({});
+      return near(r.initial.a,2)&&near(r.initial.T,24);
+    });
+
+    check("도르래 질량 교환 → 운동 방향 반전",()=>{
+      const r=solve({mA:3,mB:2});
+      return near(r.initial.a,-2)&&at(r,0.3).q<0;
+    });
+
+    check("같은 질량 → 실제 정지",()=>{
+      return solve({mA:3,mB:3}).end==="rest";
+    });
+
+    check("수평면 연결: a=6, T=12",()=>{
+      const r=solve({type:"table"});
+      return near(r.initial.a,6)&&near(r.initial.T,12);
+    });
+
+    check("정지 마찰은 필요한 만큼: f=-10 N",()=>{
+      const r=solve({
+        type:"table",mA:5,mB:1,friction:true
+      });
+      return r.end==="rest"
+        &&near(r.initial.f,-10)
+        &&near(r.initial.T,10);
+    });
+
+    check("수평면 운동 마찰: a=2.8, T=14.4",()=>{
+      const r=solve({
+        type:"table",mA:3,mB:2,friction:true
+      });
+      return near(r.initial.a,2.8)
+        &&near(r.initial.T,14.4);
+    });
+
+    check("30° 경사면: 아래로 a=5",()=>{
+      return near(solve({type:"incline"}).initial.a,5);
+    });
+
+    check("경사면에서 위로 던지면 먼저 올라간 뒤 내려옴",()=>{
+      const r=solve({type:"incline",v0:-2});
+      return at(r,0.2).q<0
+        &&r.segments.length===2
+        &&at(r,r.duration).v>0;
+    });
+
+    check("경사면: 마찰로 멈춘 뒤 정지 유지",()=>{
+      const r=solve({
+        type:"incline",theta:10,v0:1,
+        friction:true,muS:0.5,muK:0.4,distance:4
+      });
+      return r.end==="rest"&&near(at(r,r.duration).v,0);
+    });
+
+    check("관찰 거리는 시간 제한이 아님",()=>{
+      const a=solve({distance:1});
+      const b=solve({distance:2});
+      return near(a.travel,1)
+        &&near(b.travel,2)
+        &&b.duration>a.duration;
+    });
+
+    check("바닥·경사면 끝에서 계산 구간 종료",()=>{
+      const r=solve({distance:4});
+      return r.end==="boundary"
+        &&near(at(r,r.duration).q,3);
+    });
+
+    check("계수 역전 입력 거부",()=>{
+      try{
+        solve({muS:0.1,muK:0.2});
+        return false;
+      }catch{
+        return true;
+      }
+    });
+
+    check("운동과 힘의 일치: 모든 구간 F=ma 및 줄 제약",()=>{
+      for(const type of ["atwood","table","incline"]){
+        for(const mA of [1,2,7]){
+          for(const mB of [1,3]){
+            for(const friction of [false,true]){
+              const r=solve({
+                type,mA,mB,friction,
+                v0:type==="incline"?-1:0
+              });
+
+              for(const s of r.segments){
+                if(type==="atwood"&&(
+                  !near(s.T-mA*10,mA*s.a)||
+                  !near(mB*10-s.T,mB*s.a)
+                ))return false;
+
+                if(type==="table"&&(
+                  !near(s.T+s.f,mA*s.a)||
+                  !near(mB*10-s.T,mB*s.a)
+                ))return false;
+
+                if(type==="incline"
+                  &&!near(s.drive+s.f,mA*s.a)){
+                  return false;
+                }
+
+                if(s.T<-E)return false;
+              }
+
+              if(Math.abs(at(r,r.duration).q)>3+E){
+                return false;
+              }
+            }
+          }
+        }
+      }
+      return true;
+    });
+
+    return results;
+  }
+
+  return {defaults,normalize,phase,solve,at,tests};
+}
+
+/* ---------------- 설명 데이터: 향후 AI 연결 시에도 재사용 ---------------- */
+
+function createTeaching(){
+  const names={
+    atwood:"도르래 양쪽의 두 물체",
+    table:"수평면과 도르래",
+    incline:"경사면 위 한 물체"
+  };
+
+  function fmt(x){
+    if(Math.abs(x)<1e-9)return "0";
+
+    if(Math.abs(x-Math.round(x))<1e-8){
+      return String(Math.round(x));
+    }
+
+    for(let d=2;d<=12;d++){
+      const k=Math.round(x*d);
+      if(Math.abs(x-k/d)<1e-8)return k+"/"+d;
+    }
+
+    for(const r of [2,3,5,6]){
+      for(let d=1;d<=4;d++){
+        const k=Math.round(x*d/Math.sqrt(r));
+        if(k&&Math.abs(x-k*Math.sqrt(r)/d)<1e-8){
+          return (k===1?"":k===-1?"-":k)
+            +"√"+r+(d===1?"":"/"+d);
+        }
+      }
+    }
+
+    return String(Number(x.toFixed(3)));
+  }
+
+  function lessons(r){
+    const p=r.p,z=r.initial,n=fmt;
+    const A=n(p.mA),B=n(p.mB),g=n(p.g);
+    const inc=p.type==="incline";
+    const atw=p.type==="atwood";
+    const has=p.friction&&!atw;
+
+    const axis=atw
+      ?"A는 위쪽, B는 아래쪽"
+      :inc?"경사면 아래쪽":"A는 오른쪽, B는 아래쪽";
+
+    const direction=z.a>1e-9
+      ?(inc?"경사면 아래쪽":atw?"A 위쪽·B 아래쪽":"A 오른쪽·B 아래쪽")
+      :z.a<-1e-9?"A 아래쪽·B 위쪽":"가속도 0";
+
+    const equations=atw
+      ?["T − mₐg = mₐa","mᵦg − T = mᵦa"]
+      :inc
+        ?["mₐg sin θ + f = mₐa"]
+        :["T + f = mₐa","mᵦg − T = mᵦa"];
+
+    const numeric=atw
+      ?[
+        `T − ${n(p.mA*p.g)} = ${A}a`,
+        `${n(p.mB*p.g)} − T = ${B}a`
+      ]
+      :inc
+        ?[`${n(z.drive)} + (${n(z.f)}) = ${A}a`]
+        :[
+          `T + (${n(z.f)}) = ${A}a`,
+          `${n(p.mB*p.g)} − T = ${B}a`
+        ];
+
+    const formula=(
+      name,expression,principle,symbols,
+      why,substitution,algebra,answer
+    )=>({
+      name,expression,principle,symbols,
+      why,substitution,algebra,answer
+    });
+
+    const formulas=[
+      formula(
+        "뉴턴의 운동 제2법칙",
+        "F알짜 = ma",
+        "한 방향의 힘을 부호에 맞춰 모두 더한 알짜힘이 질량과 가속도의 곱이다.",
+        "F알짜: 알짜힘(N), m: 질량(kg), a: 가속도(m/s²)",
+        "각 물체의 힘으로 가속도를 구하기 위해 사용한다.",
+        numeric.join(" ; "),
+        "알짜힘을 질량으로 나누면 a = F알짜/m",
+        `a = ${n(z.a)} m/s². 부호는 정한 양의 방향에 대한 것이다.`
+      ),
+      formula(
+        "물체에 작용하는 중력",
+        "W = mg",
+        "중력은 물체를 연직 아래로 당긴다. 질량과 무게는 다른 양이다.",
+        "W: 중력의 크기(N), m: 질량(kg), g: 중력가속도(m/s²)",
+        "운동을 일으키는 힘과 수직항력을 구할 때 중력이 필요하다.",
+        `A: Wₐ = ${A} × ${g}`,
+        `질량 × 중력가속도 = ${n(p.mA*p.g)}`,
+        `A의 중력은 아래로 ${n(p.mA*p.g)} N${
+          inc?"":`, B의 중력은 ${n(p.mB*p.g)} N`
+        }.`
+      )
+    ];
+
+    if(inc){
+      formulas.push(formula(
+        "경사면에서 중력의 성분",
+        "W평행 = mg sin θ, W수직 = mg cos θ",
+        "중력을 경사면을 따라 미는 효과와 면을 누르는 효과로 나눈다. 새로운 힘을 추가하는 것이 아니다.",
+        "θ: 경사각(°), W평행·W수직: 중력의 성분(N)",
+        "경사면 방향 운동과 면에 수직인 방향의 평형을 따로 보기 위해서다.",
+        `${A} × ${g} × sin ${n(p.theta)}° ; ${A} × ${g} × cos ${n(p.theta)}°`,
+        "sin 값은 경사면 방향, cos 값은 면에 수직인 방향에 곱한다.",
+        `아래쪽 성분 ${n(z.drive)} N, 면을 누르는 성분 ${n(z.N)} N.`
+      ));
+    }
+
+    if(!atw){
+      formulas.push(formula(
+        "면에 수직인 방향의 힘의 평형",
+        inc?"N = mg cos θ":"N = mg",
+        "물체가 면에서 뜨거나 면을 뚫고 들어가지 않으므로 수직 방향의 알짜힘은 0이다.",
+        "N: 수직항력(N), m: 질량(kg), g: 중력가속도, θ: 경사각",
+        "이 문제에는 면에 수직인 외력이 중력과 수직항력뿐이다.",
+        inc
+          ?`N = ${A} × ${g} × cos ${n(p.theta)}°`
+          :`N = ${A} × ${g}`,
+        "수직항력 − 면을 누르는 중력 성분 = 0",
+        `N = ${n(z.N)} N. 일반적으로 항상 N=mg인 것은 아니다.`
+      ));
+    }
+
+    if(has){
+      formulas.push(formula(
+        "정지 마찰과 운동 마찰",
+        z.mode==="static"?"0 ≤ |fₛ| ≤ μₛN":"|fₖ| = μₖN",
+        "정지 마찰은 미끄러지지 않게 필요한 만큼 작용하고, 미끄러질 때의 마찰은 실제 운동의 반대 방향이다.",
+        "fₛ·fₖ: 마찰력(N), μₛ·μₖ: 단위 없는 마찰계수, N: 수직항력(N)",
+        "정지 유지 여부를 먼저 판단하고, 미끄러질 때만 운동 마찰식을 사용한다.",
+        `최대 정지 마찰 = ${n(p.muS)} × ${n(z.N)} ; 운동 마찰 크기 = ${n(p.muK)} × ${n(z.N)}`,
+        z.mode==="static"
+          ?`필요한 마찰 ${n(z.drive)} N ≤ 최대값 ${n(p.muS*z.N)} N이므로 실제 f = −${n(z.drive)} N.`
+          :`실제 미끄러지는 방향의 반대 부호를 붙인다. f = ${n(z.f)} N.`,
+        `출발 순간의 마찰력: f = ${n(z.f)} N.`
+      ));
+    }
+
+    const add=atw
+      ?"T − mₐg + mᵦg − T = mₐa + mᵦa"
+      :inc
+        ?"mₐg sin θ + f = mₐa"
+        :"T + f + mᵦg − T = mₐa + mᵦa";
+
+    const reduced=atw
+      ?"(mᵦ − mₐ)g = (mₐ + mᵦ)a"
+      :inc
+        ?"a = (mₐg sin θ + f)/mₐ"
+        :"mᵦg + f = (mₐ + mᵦ)a";
+
+    const sumDrive=z.M*z.a;
+
+    const calculation=atw
+      ?`(${B} − ${A}) × ${g} = (${A} + ${B})a`
+      :inc
+        ?`${n(z.drive)} + (${n(z.f)}) = ${A}a`
+        :`${n(p.mB*p.g)} + (${n(z.f)}) = (${A} + ${B})a`;
+
+    const tension=atw
+      ?`T = mₐ(g + a) = ${A} × (${g} + (${n(z.a)})) = ${n(z.T)} N`
+      :`T = mᵦ(g − a) = ${B} × (${g} − (${n(z.a)})) = ${n(z.T)} N`;
+
+    return {
+      names,axis,formulas,equations,
+      steps:[
+        {
+          title:"문제 상황과 조건",
+          paragraphs:[
+            `${names[p.type]}. A의 질량 ${A} kg${
+              inc?`, 경사각 ${n(p.theta)}°`:`, B의 질량 ${B} kg`
+            }. 중력가속도 ${g} m/s².`,
+            atw
+              ?"줄의 질량과 늘어남, 도르래의 질량과 마찰을 무시한다. 줄은 항상 팽팽한 이상적인 줄이다."
+              :`면은 고정되어 있고 물체는 면에서 떨어지지 않는다. ${
+                has?`μₛ=${n(p.muS)}, μₖ=${n(p.muK)}.`:"마찰은 없다."
+              }`,
+            `${axis}을 각각 양의 방향으로 정한다. ${
+              inc
+                ?`초기 속도는 ${n(p.v0)} m/s이며, 음수면 경사면 위쪽이다.`
+                :"처음에는 정지 상태에서 놓는다."
+            }`
+          ],
+          easy:"질량은 물체의 양, 중력은 아래로 당기는 힘이다. 먼저 어떤 물체가 무엇과 연결되어 있는지만 살펴보자."
+        },
+        {
+          title:"운동 방향과 가속도 예상",
+          paragraphs:[
+            `출발 순간의 가속도: ${direction}.`,
+            inc&&p.v0!==0
+              ?`출발 속도는 ${p.v0>0?"아래":"위"}쪽이다. 속도의 방향과 가속도의 방향은 다를 수 있다. 위로 가는 동안 아래쪽으로 가속하면 속력이 줄어든다.`
+              :Math.abs(z.a)<1e-9
+                ?"처음 속도도 0이므로 정지 상태를 유지한다. 힘이 없다는 뜻이 아니라 힘의 합이 0이라는 뜻이다."
+                :atw
+                  ?`${p.mA>p.mB?"A":"B"}가 더 무거워 그쪽이 내려간다. 장력은 중력과 함께 각 물체의 알짜힘을 결정한다.`
+                  :inc
+                    ?"면을 따라 아래로 당기는 중력 성분과 마찰력을 비교한다."
+                    :"매달린 B의 중력이 계를 움직이게 하고, A의 마찰력이 이를 방해할 수 있다."
+          ],
+          easy:"속도는 지금 어디로 움직이는지, 가속도는 속도가 어느 방향으로 바뀌는지를 알려준다. 둘을 같은 뜻으로 생각하지 말자."
+        },
+        {
+          title:"각 물체에 작용하는 힘",
+          paragraphs:[
+            atw
+              ?"A와 B 모두 아래로 중력, 위로 장력을 받는다."
+              :"A는 아래로 중력과 면에 수직인 수직항력을 받는다.",
+            inc
+              ?`줄이 없으므로 장력은 없다. ${
+                has
+                  ?"마찰력은 운동 또는 미끄러지려는 방향의 반대로 작용한다."
+                  :"면을 따라 작용하는 중력 성분이 가속도를 만든다."
+              }`
+              :`B는 아래로 중력, 위로 장력을 받는다. ${
+                atw
+                  ?"같은 이상적인 줄이므로 양쪽 장력의 크기는 같다."
+                  :"A는 오른쪽 장력과, 마찰이 있을 때 수평 마찰력을 받는다."
+              }`,
+            "중력 전체와 중력의 두 성분을 동시에 별개의 힘으로 더하면 중력을 두 번 센다."
+          ],
+          easy:"한 물체만 떼어 놓고 생각하자. 지구가 당기면 중력, 면이 밀면 수직항력, 줄이 당기면 장력이다."
+        },
+        {
+          title:"사용할 공식과 의미",
+          paragraphs:[
+            "아래 공식 카드를 펼치면 이름·원리·문자와 단위·선택 이유·수치 대입·식 정리·결과를 확인할 수 있다.",
+            "힘이 주어진 문제이므로 뉴턴의 운동 법칙으로 가속도를 구한다. 대학 수준의 수학은 필요하지 않다."
+          ],
+          easy:"공식을 외워서 고르는 대신 ‘어떤 힘이 속도를 바꾸는가?’를 먼저 보자. 그 관계를 식으로 쓴 것이 알짜힘=질량×가속도이다."
+        },
+        {
+          title:"물체별 운동 방정식",
+          paragraphs:[
+            `양의 방향: ${axis}. 같은 방향 힘은 +, 반대 방향 힘은 −로 쓴다.`,
+            ...equations,
+            inc
+              ?"f는 방향을 포함한 마찰력이다. 마찰이 없으면 0이다."
+              :(atw?"":"f는 A에 작용하는 방향을 포함한 마찰력이다. ")
+                +"이상적인 줄의 길이가 일정하므로 두 물체의 가속도 크기는 같아서 같은 a를 사용한다."
+          ],
+          easy:"장력이라고 항상 빼는 것이 아니다. 내가 정한 + 방향과 같으면 더하고, 반대면 뺀다."
+        },
+        {
+          title:"식 정리와 연립",
+          paragraphs:[
+            inc
+              ?"한 물체의 식 양변을 질량으로 나눈다."
+              :"두 물체의 식을 왼쪽끼리, 오른쪽끼리 더한다.",
+            add,
+            reduced,
+            inc
+              ?"양변을 같은 수로 나누어 가속도만 남긴다."
+              :"선택한 좌표에서 +T와 −T가 소거된다. 장력이 사라진 것이 아니라 두 식을 더할 때 계산에서 없어진 것이다.",
+            inc
+              ?"중력 성분과 마찰력은 이미 면 방향으로 정리되어 있다."
+              :"이상적인 줄이므로 장력의 크기가 같아 소거할 수 있다. 두 물체가 줄에게 받는 힘끼리를 작용·반작용 쌍이라고 부르지는 않는다."
+          ],
+          easy:inc
+            ?"ma가 한쪽에 남았으니 양변을 m으로 나누면 a를 구할 수 있다."
+            :"한 물체는 줄에 이끌리고, 다른 물체는 줄에 의해 당겨짐을 방해받는다. 두 식을 더하면 두 장력 항이 서로 지워진다."
+        },
+        {
+          title:"숫자 대입과 계산",
+          paragraphs:[
+            ...numeric,
+            calculation,
+            `${n(sumDrive)} = ${n(z.M)}a`,
+            `a = ${n(sumDrive)} ÷ ${n(z.M)} = ${n(z.a)} m/s²`,
+            ...(inc?[]:[tension]),
+            "반올림하기 전 값으로 계산하며, 화면의 짧은 소수는 근삿값이다."
+          ],
+          easy:"먼저 힘을 N 단위로 계산하고, 마지막에 질량 kg으로 나눈다. 장력은 구한 가속도를 원래 물체의 식에 다시 넣어 구한다."
+        },
+        {
+          title:"최종 답과 핵심 개념",
+          paragraphs:[
+            `출발 순간: a = ${n(z.a)} m/s²${
+              inc?"":`, T = ${n(z.T)} N`
+            }. ${direction}.`,
+            inc
+              ?"수직항력은 중력 전체가 아니라 면을 누르는 성분과 균형을 이룬다. 장력은 없다."
+              :"두 물체의 가속도는 크기가 같다. 공간에서의 방향까지 같다는 뜻은 아니다.",
+            "알짜힘은 하나의 새로운 힘이 아니라, 실제 작용하는 힘을 방향에 따라 더한 결과이다.",
+            "이 풀이는 출발 순간의 운동 구간을 설명한다. 마찰 방향이 바뀌거나 바닥·면 끝에 도달하면 같은 식을 그대로 적용하지 않는다."
+          ],
+          easy:"답에는 크기뿐 아니라 방향과 단위가 필요하다. 양의 방향을 바꾸면 부호가 바뀌어도 실제 운동은 달라지지 않는다."
+        }
+      ]
+    };
+  }
+
+  return {fmt,lessons,names};
+}
+
+/* ---------------- 사용자 화면 ---------------- */
+
+function startApp(){
+  const P=createPhysics();
+  const L=createTeaching();
+  const $=id=>document.getElementById(id);
+  const n=L.fmt;
+
+  let model,lesson;
+  let t=0,playing=false,last=0,step=0;
+  let selected="A",showEasy=false;
+  let params={...P.defaults};
+
+  const esc=x=>String(x).replace(
+    /[&<>"']/g,
+    c=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",
+      '"':"&quot;","'":"&#39;"
+    }[c])
+  );
+
+  const field=(key,label,min,max,increment,unit="")=>`
+    <label class="field">
+      <span>${label} <small>${unit}</small></span>
+      <div>
+        <input
+          aria-label="${label} 슬라이더"
+          type="range" data-range="${key}"
+          min="${min}" max="${max}" step="${increment}">
+        <input
+          aria-label="${label}"
+          data-number="${key}" type="number"
+          min="${min}" max="${max}" step="${increment}">
+      </div>
+    </label>`;
+
+  function settings(){
+    const inc=params.type==="incline";
+    const atw=params.type==="atwood";
+
+    $("fields").innerHTML=
+      field("mA","A의 질량",0.1,20,0.1,"kg")+
+      (inc?"":field("mB","B의 질량",0.1,20,0.1,"kg"))+
+      (inc
+        ?field("theta","경사각",0,60,1,"°")+
+          field("v0","초기 속도 · 아래쪽 +",-4,4,0.1,"m/s")
+        :"")+
+      field("g","중력가속도",1,20,0.1,"m/s²")+
+      field("distance","관찰할 총 이동 거리",0.25,4,0.25,"m")+
+      (!atw
+        ?`<label class="check">
+            <input id="friction" type="checkbox"
+              ${params.friction?"checked":""}> 마찰 사용
+          </label>`
+        :"")+
+      (!atw&&params.friction
+        ?field("muS","최대 정지 마찰계수",0,1.5,0.05)+
+          field("muK","운동 마찰계수",0,1.5,0.05)
+        :"");
+
+    document.querySelectorAll("[data-number],[data-range]")
+      .forEach(e=>{
+        e.value=params[e.dataset.number||e.dataset.range];
+      });
+
+    $("type").value=params.type;
+  }
+
+  function apply(next,resetStep=false){
+    try{
+      const r=P.solve(next);
+
+      const rebuild=
+        params.type!==r.p.type||
+        params.friction!==r.p.friction||
+        !$("fields").innerHTML;
+
+      params={...r.p};
+      model=r;
+      lesson=L.lessons(r);
+
+      playing=false;
+      t=0;
+      last=0;
+      if(resetStep)step=0;
+
+      showEasy=false;
+      selected="A";
+      $("easy").hidden=true;
+      $("error").textContent="";
+
+      if(rebuild){
+        settings();
+      }else{
+        document.querySelectorAll("[data-number],[data-range]")
+          .forEach(e=>{
+            e.value=params[e.dataset.number||e.dataset.range];
+          });
+      }
+
+      renderLesson();
+      paint();
+    }catch(e){
+      $("error").textContent=e.message;
+    }
+  }
+
+  $("fields").addEventListener("input",e=>{
+    const k=e.target.dataset.range;
+    if(k)apply({...params,[k]:Number(e.target.value)});
+  });
+
+  $("fields").addEventListener("change",e=>{
+    const k=e.target.dataset.number;
+
+    if(k){
+      apply({...params,[k]:Number(e.target.value)});
+    }
+
+    if(e.target.id==="friction"){
+      apply({...params,friction:e.target.checked});
+    }
+  });
+
+  $("type").addEventListener("change",e=>{
+    apply({...P.defaults,type:e.target.value},true);
+  });
+
+  $("preset").addEventListener("click",()=>{
+    apply({...P.defaults,type:params.type},true);
+  });
+
+  function arrow(x,y,dx,dy,value,label,color){
+    if(Math.abs(value)<1e-8)return "";
+
+    const mag=34+Math.min(45,Math.abs(value)*1.2);
+    const len=Math.hypot(dx,dy);
+    dx=dx/len*mag;
+    dy=dy/len*mag;
+
+    return `
+      <g class="force">
+        <path
+          d="M ${x} ${y} l ${dx} ${dy}"
+          stroke="${color}" stroke-width="3"
+          fill="none" marker-end="url(#arr)"/>
+        <text
+          x="${x+dx+(dx<0?-5:5)}"
+          y="${y+dy-6}"
+          text-anchor="${dx<0?"end":"start"}"
+          fill="${color}">
+          ${esc(label)} ${esc(n(Math.abs(value)))} N
+        </text>
+      </g>`;
+  }
+
+  function body(x,y,id,rotation=0){
+    return `
+      <g
+        data-body="${id}" role="button" tabindex="0"
+        aria-label="${id} 물체 힘 분석"
+        transform="translate(${x},${y}) rotate(${rotation})"
+        class="body ${selected===id?"selected":""}">
+        <rect x="-26" y="-25" width="52" height="50" rx="8"
+          fill="${id==="A"?"#3768d4":"#d65c38"}"/>
+        <text y="6" text-anchor="middle" fill="white">${id}</text>
+      </g>`;
+  }
+
+  const defs=`
+    <defs>
+      <marker id="arr"
+        markerWidth="8" markerHeight="8"
+        refX="6" refY="3" orient="auto"
+        markerUnits="userSpaceOnUse">
+        <path d="M0,0 L6,3 L0,6"
+          fill="none" stroke="#52657b" stroke-width="2"/>
+      </marker>
+      <pattern id="grid" width="30" height="30"
+        patternUnits="userSpaceOnUse">
+        <path d="M30 0H0V30" fill="none" stroke="#e9eef6"/>
+      </pattern>
+    </defs>`;
+
+  function drawScene(s){
+    const p=params,q=s.q;
+    const forces=$("forces").checked;
+    const motion=$("motion").checked;
+
+    let out=defs+
+      `<rect width="900" height="490" fill="url(#grid)"/>`;
+    let positions={};
+
+    if(p.type==="atwood"){
+      const ya=300-q*32;
+      const yb=300+q*32;
+
+      out+=`
+        <path d="M450 25V50" class="fixture"/>
+        <circle cx="450" cy="100" r="50" class="wheel"/>
+        <circle cx="450" cy="100" r="6" fill="#78899e"/>
+        <path
+          d="M400 ${ya-25}V100 A50 50 0 0 1 500 100V${yb-25}"
+          class="rope"/>
+        <path d="M330 421H570" class="fixture"/>`;
+
+      positions={A:[400,ya],B:[500,yb]};
+    }else if(p.type==="table"){
+      const xa=377+q*32;
+      const yb=220+q*32;
+
+      out+=`
+        <path d="M180 180H500V400M200 180V400" class="fixture"/>
+        <path d="M500 180H530" class="fixture"/>
+        <circle cx="530" cy="183" r="28" class="wheel"/>
+        <path
+          d="M${xa+26} 155H530 A28 28 0 0 1 558 183V${yb-25}"
+          class="rope"/>
+        <path d="M520 341H610" class="fixture"/>`;
+
+      positions={A:[xa,155],B:[558,yb]};
+    }else{
+      const rad=p.theta*Math.PI/180;
+      const c=Math.cos(rad),sn=Math.sin(rad);
+      const x=170+(3.5-q)*55*c-25*sn;
+      const y=420-(3.5-q)*55*sn-25*c;
+
+      out+=`
+        <path
+          d="M170 420 L${170+385*c} ${420-385*sn}
+            L${170+385*c} 420 Z"
+          fill="#e1e9f4" stroke="#758ba8" stroke-width="3"/>
+        <text x="210" y="448">θ = ${p.theta}°</text>`;
+
+      positions={A:[x,y]};
+    }
+
+    for(const [id,[x,y]]of Object.entries(positions)){
+      out+=body(x,y,id,p.type==="incline"?-p.theta:0);
+
+      if(forces){
+        if(p.type==="incline"){
+          const rad=p.theta*Math.PI/180;
+          const c=Math.cos(rad),sn=Math.sin(rad);
+
+          out+=arrow(
+            x+18,y,0,1,p.mA*p.g,"mg","#d45a43"
+          );
+          out+=arrow(
+            x-10,y,-sn,-c,s.N,"N","#16866e"
+          );
+
+          if(s.f){
+            out+=arrow(
+              x,y+10,
+              -c*Math.sign(s.f),sn*Math.sign(s.f),
+              s.f,"f","#ad6ac2"
+            );
+          }
+        }else{
+          const m=id==="A"?p.mA:p.mB;
+
+          out+=arrow(
+            x-17,y,0,1,m*p.g,"mg","#d45a43"
+          );
+
+          if(p.type==="table"&&id==="A"){
+            out+=arrow(
+              x+10,y,0,-1,s.N,"N","#16866e"
+            );
+            out+=arrow(
+              x+26,y-12,1,0,s.T,"T","#8258c1"
+            );
+
+            if(s.f){
+              out+=arrow(
+                x-26,y+10,Math.sign(s.f),0,
+                s.f,"f","#a765ae"
+              );
+            }
+          }else{
+            out+=arrow(
+              x+17,y,0,-1,s.T,"T","#8258c1"
+            );
+          }
+        }
+      }
+
+      if(motion){
+        let dx=0,dy=1;
+
+        if(p.type==="atwood"&&id==="A")dy=-1;
+
+        if(p.type==="table"&&id==="A"){
+          dx=1;dy=0;
+        }
+
+        if(p.type==="incline"){
+          dx=-Math.cos(p.theta*Math.PI/180);
+          dy=Math.sin(p.theta*Math.PI/180);
+        }
+
+        const sign=Math.sign(s.v);
+        const asign=Math.sign(s.a);
+
+        for(const [value,sg,offset,color,label]of [
+          [s.v,sign,-65,"#247bb6","v"],
+          [s.a,asign,65,"#ac7622","a"]
+        ]){
+          if(Math.abs(value)<1e-8)continue;
+
+          const x0=x+offset,y0=y-12;
+          const xx=x0+dx*sg*40,yy=y0+dy*sg*40;
+
+          out+=`
+            <path d="M${x0} ${y0}L${xx} ${yy}"
+              stroke="${color}" stroke-width="3"
+              marker-end="url(#arr)"/>
+            <text x="${xx+5}" y="${yy-8}" fill="${color}">
+              ${label}
+            </text>`;
+        }
+      }
+    }
+
+    out+=`
+      <text x="35" y="35" class="diagram-title">
+        ${esc(L.names[p.type])}
+      </text>
+      <text x="35" y="65">
+        물체를 누르면 해당 물체의 힘을 확인할 수 있어요.
+      </text>
+      <text x="35" y="475">
+        그림은 모식도 · 힘 화살표 길이는 정확한 비례 척도가 아닙니다.
+      </text>`;
+
+    $("scene").innerHTML=out;
+  }
+
+  function fbd(s,id){
+    const p=params;
+    const m=id==="B"?p.mB:p.mA;
+
+    let out=defs+`
+      <circle cx="150" cy="130" r="13"
+        fill="${id==="A"?"#3768d4":"#d65c38"}"/>`;
+
+    out+=arrow(
+      138,130,0,1,m*p.g,"mg","#d45a43"
+    );
+
+    if(p.type==="incline"){
+      const rad=p.theta*Math.PI/180;
+      const c=Math.cos(rad),sn=Math.sin(rad);
+
+      out+=arrow(
+        150,118,-sn,-c,s.N,"N","#16866e"
+      );
+
+      if(s.f){
+        out+=arrow(
+          145,140,-c*Math.sign(s.f),sn*Math.sign(s.f),
+          s.f,"f","#a765ae"
+        );
+      }
+    }else if(p.type==="table"&&id==="A"){
+      out+=arrow(
+        160,120,0,-1,s.N,"N","#16866e"
+      );
+
+      out+=arrow(
+        160,130,1,0,s.T,"T","#8258c1"
+      );
+
+      if(s.f){
+        out+=arrow(
+          135,120,Math.sign(s.f),0,s.f,"f","#a765ae"
+        );
+      }
+    }else{
+      out+=arrow(
+        160,130,0,-1,s.T,"T","#8258c1"
+      );
+    }
+
+    return `
+      <svg viewBox="0 0 340 260"
+        role="img" aria-label="${id}의 자유물체도">
+        ${out}
+      </svg>`;
+  }
+
+  function renderForces(s){
+    if(params.type==="incline")selected="A";
+
+    $("bodyA").setAttribute(
+      "aria-pressed",String(selected==="A")
+    );
+    $("bodyB").hidden=params.type==="incline";
+    $("bodyB").setAttribute(
+      "aria-pressed",String(selected==="B")
+    );
+
+    $("fbd").innerHTML=fbd(s,selected);
+
+    const id=selected;
+    const m=id==="A"?params.mA:params.mB;
+
+    const eq=params.type==="incline"
+      ?"mg sin θ + f = ma"
+      :params.type==="table"&&id==="A"
+        ?"T + f = ma"
+        :id==="A"?"T − mg = ma":"mg − T = ma";
+
+    $("forceEquation").textContent=
+      `${id}: ${eq} → F알짜 = ${n(m*s.a)} N`;
+
+    $("forceNote").textContent=
+      `현재 시각의 힘입니다. + 방향: ${lesson.axis}. `
+      +"f는 부호를 포함하며, 알짜힘은 실제 힘들을 더한 결과입니다.";
+  }
+
+  function graph(){
+    const r=model,w=720,h=190;
+    const kind=$("graphKind").value;
+    const end=r.duration;
+    let data=[];
+
+    if(end===0){
+      data=[
+        [0,kind==="a"?r.initial.a:0],
+        [1,kind==="a"?r.initial.a:0]
+      ];
+    }else{
+      for(let i=0;i<=120;i++){
+        const ti=end*i/120;
+        const s=P.at(r,ti);
+        data.push([
+          ti,kind==="q"?s.q:kind==="v"?s.v:s.a
+        ]);
+      }
+    }
+
+    const max=Math.max(
+      1,...data.map(a=>Math.abs(a[1]))
+    );
+    const scale=(h-50)/2/max;
+    const x=ti=>40+(w-65)*ti/(end||1);
+    const y=v=>h/2-v*scale;
+
+    $("graph").innerHTML=`
+      <path
+        d="M40 18V${h-20}M40 ${h/2}H${w-15}"
+        stroke="#a0aec1" fill="none"/>
+      <polyline
+        points="${data.map(([ti,v])=>`${x(ti)},${y(v)}`).join(" ")}"
+        fill="none" stroke="#3768d4" stroke-width="3"/>
+      <path d="M${x(t)} 20V${h-20}"
+        stroke="#d65c38" stroke-dasharray="4"/>
+      <text x="45" y="17">${
+        {
+          q:"변위(m)",
+          v:"속도(m/s)",
+          a:"가속도(m/s²)"
+        }[kind]
+      }</text>
+      <text x="${w-150}" y="${h-3}">
+        시간(s) 0 → ${n(end)}
+      </text>
+      <text x="2" y="40">${n(max)}</text>
+      <text x="2" y="${h-25}">${n(-max)}</text>`;
+  }
+
+  function paint(){
+    if(!model)return;
+
+    const s=P.at(model,t);
+    const done=t>=model.duration-1e-8;
+
+    $("play").textContent=playing
+      ?"Ⅱ 일시정지"
+      :done&&model.end!=="rest"
+        ?"↻ 다시 재생":"▶ 재생";
+
+    $("timeline").max=model.duration||1;
+    $("timeline").value=t;
+    $("timeline").disabled=model.duration===0;
+    $("clock").textContent=`t = ${n(t)} s`;
+
+    $("status").textContent=
+      model.duration===0
+        ?"실제 정지 · 초기 속도 0, 알짜힘 0"
+        :done
+          ?model.end==="rest"
+            ?"실제 정지 · 마찰로 속도가 0이 되어 정지 유지"
+            :model.end==="boundary"
+              ?"경계 도달 · 바닥/지지면 끝의 접촉 변화 전에서 계산 종료. 정지한 것으로 가정하지 않습니다."
+              :"학습용 일시정지 · 설정한 총 이동 거리 도달. 물체의 실제 속도는 아래 값과 같습니다."
+          :playing
+            ?"재생 중 · 물리 시간에 재생 배속을 적용합니다."
+            :"학습용 일시정지 · 화면만 멈췄으며 속도는 0으로 바꾸지 않습니다.";
+
+    $("initial").innerHTML=`
+      <strong>출발 순간 계산</strong>
+      <span>
+        a = ${n(model.initial.a)} m/s²${
+          params.type==="incline"
+            ?""
+            :` · T = ${n(model.initial.T)} N`
+        }
+      </span>
+      <small>+ 방향: ${esc(lesson.axis)}</small>`;
+
+    const rows=[
+      ["질량(kg)",params.mA,params.mB],
+      ["가속도(m/s²)",s.a,s.a],
+      ["알짜힘(N)",params.mA*s.a,params.mB*s.a],
+      ["속도(m/s)",s.v,s.v],
+      ["변위(m)",s.q,s.q]
+    ];
+
+    $("current").innerHTML=`
+      <table>
+        <thead>
+          <tr>
+            <th>현재 값</th><th>A</th>
+            ${params.type==="incline"?"":"<th>B</th>"}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(([label,a,b])=>`
+            <tr>
+              <th>${label}</th>
+              <td>${n(a)}</td>
+              ${params.type==="incline"?"":`<td>${n(b)}</td>`}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      <p class="small">
+        각 물체의 + 방향은 위 안내와 같습니다.
+        ${
+          params.type==="incline"
+            ?`N=${n(s.N)} N · f=${n(s.f)} N · 장력 없음`
+            :`T=${n(s.T)} N${
+              params.type==="table"
+                ?` · Nₐ=${n(s.N)} N · fₐ=${n(s.f)} N`
+                :""
+            }`
+        }
+        <br>
+        ${
+          s.t0>0
+            ?"운동 구간이 바뀌었습니다. 아래 8단계 풀이는 출발 순간을 설명합니다."
+            :"현재 구간에서는 힘과 가속도가 일정합니다. 속도와 위치는 시간에 따라 변할 수 있습니다."
+        }
+      </p>`;
+
+    drawScene(s);
+    renderForces(s);
+    graph();
+
+    const dt=s.t-s.t0;
+
+    $("kinematics").innerHTML=`
+      <h3>등가속도 운동 공식</h3>
+      <p><b>원리:</b>
+        한 구간에서 가속도가 일정하면 같은 시간마다
+        속도가 같은 양만큼 바뀝니다.
+      </p>
+      <p class="math">
+        v = v₀ + aΔt<br>
+        Δs = v₀Δt + ½a(Δt)²
+      </p>
+      <p><b>문자:</b>
+        v·v₀는 속도(m/s), a는 가속도(m/s²),
+        Δt는 현재 구간에서 지난 시간(s),
+        Δs는 그 구간의 변위(m)입니다.
+      </p>
+      <p><b>사용 이유:</b>
+        현재 운동 구간의 가속도가 일정하기 때문입니다.
+        방향이 반전되면 새 구간으로 나눕니다.
+      </p>
+      <p><b>대입:</b>
+        Δt=${n(dt)}, v₀=${n(s.v0)}, a=${n(s.a)}<br>
+        v=${n(s.v0)}+(${n(s.a)})×${n(dt)}
+          =${n(s.v)} m/s<br>
+        Δs=${n(s.v0)}×${n(dt)}
+          +½×(${n(s.a)})×(${n(dt)})²
+          =${n(s.q-s.q0)} m
+      </p>
+      <p><b>식 정리:</b>
+        시간의 제곱, 곱셈, 덧셈 순으로 계산합니다.
+        전체 변위는 구간 시작 변위 ${n(s.q0)} m를 더해
+        ${n(s.q)} m입니다.
+      </p>
+      <p><b>해석:</b>
+        음수는 정한 + 방향의 반대입니다.
+        변위와 왕복한 총 이동 거리는 다릅니다.
+      </p>`;
+  }
+
+  function renderLesson(){
+    const s=lesson.steps[step];
+
+    $("stepTitle").textContent=
+      `${step+1}/8 · ${s.title}`;
+
+    $("steps").innerHTML=lesson.steps.map((x,i)=>`
+      <button
+        type="button" data-step="${i}"
+        aria-current="${step===i?"step":"false"}">
+        ${i+1}<span>${esc(x.title)}</span>
+      </button>
+    `).join("");
+
+    $("stepContent").innerHTML=
+      s.paragraphs.map(x=>`
+        <p${/[=]/.test(x)?" class='math'":""}>
+          ${esc(x)}
+        </p>
+      `).join("")+
+      (step===2
+        ?`<div class="lesson-fbd">
+            ${fbd(model.initial,"A")}
+            ${params.type==="incline"?"":fbd(model.initial,"B")}
+          </div>`
+        :"")+
+      (step===3
+        ?lesson.formulas.map(c=>`
+          <details class="formula">
+            <summary>
+              ${esc(c.name)} · ${esc(c.expression)}
+            </summary>
+            ${[
+              ["원리",c.principle],
+              ["문자와 단위",c.symbols],
+              ["선택 이유",c.why],
+              ["수치 대입",c.substitution],
+              ["식 정리",c.algebra],
+              ["결과 해석",c.answer]
+            ].map(([a,b])=>`
+              <p><b>${a}</b> ${esc(b)}</p>
+            `).join("")}
+          </details>
+        `).join("")
+        :"");
+
+    $("easy").textContent=s.easy;
+    $("easy").hidden=!showEasy;
+    $("easyBtn").setAttribute(
+      "aria-expanded",String(showEasy)
+    );
+
+    $("prev").disabled=step===0;
+    $("next").textContent=step===7
+      ?"처음 단계로":"이해했어, 다음 단계";
+
+    $("lessonCaption").textContent=step===2
+      ?"출발 순간의 자유물체도입니다. 화살표 색과 힘의 기호를 연결해 보세요."
+      :step===5
+        ?"식의 +T와 −T가 소거되는지 확인해 보세요."
+        :"단계는 자유롭게 선택할 수 있으며 자동으로 넘어가지 않습니다.";
+
+    $("quizResult").textContent="";
+    $("quiz").value="";
+  }
+
+  $("steps").addEventListener("click",e=>{
+    const b=e.target.closest("[data-step]");
+    if(b){
+      step=Number(b.dataset.step);
+      showEasy=false;
+      renderLesson();
+    }
+  });
+
+  $("prev").onclick=()=>{
+    step=Math.max(0,step-1);
+    showEasy=false;
+    renderLesson();
+  };
+
+  $("next").onclick=()=>{
+    step=(step+1)%8;
+    showEasy=false;
+    renderLesson();
+  };
+
+  $("easyBtn").onclick=()=>{
+    showEasy=!showEasy;
+    renderLesson();
+  };
+
+  $("quizSubmit").onclick=()=>{
+    const choice=$("quiz").value;
+
+    $("quizResult").textContent=choice===""
+      ?"답을 선택해 주세요."
+      :choice==="b"
+        ?"맞아요. 알짜힘이 0이면 가속도가 0입니다. 이미 움직이고 있다면 등속 운동을 할 수 있어요."
+        :"다시 생각해 보세요. 알짜힘은 속도가 아니라 속도의 변화와 관계가 있습니다.";
+  };
+
+  $("play").onclick=()=>{
+    if(model.duration===0){
+      paint();
+      return;
+    }
+
+    if(playing){
+      playing=false;
+    }else{
+      if(t>=model.duration-1e-8)t=0;
+      playing=true;
+      last=0;
+    }
+
+    paint();
+  };
+
+  $("reset").onclick=()=>{
+    playing=false;
+    t=0;
+    last=0;
+    paint();
+  };
+
+  $("timeline").oninput=e=>{
+    playing=false;
+    t=Math.min(model.duration,Number(e.target.value));
+    paint();
+  };
+
+  $("forces").onchange=paint;
+  $("motion").onchange=paint;
+  $("graphKind").onchange=graph;
+
+  $("bodyA").onclick=()=>{
+    selected="A";
+    renderForces(P.at(model,t));
+  };
+
+  $("bodyB").onclick=()=>{
+    selected="B";
+    renderForces(P.at(model,t));
+  };
+
+  function selectBody(e){
+    const b=e.target.closest("[data-body]");
+    if(b){
+      selected=b.dataset.body;
+      paint();
+    }
+  }
+
+  $("scene").addEventListener("click",selectBody);
+  $("scene").addEventListener("keydown",e=>{
+    if(e.key==="Enter"||e.key===" "){
+      e.preventDefault();
+      selectBody(e);
+    }
+  });
+
+  $("save").onclick=()=>{
+    try{
+      localStorage.setItem(
+        "physics-notebook-v1",
+        JSON.stringify(params)
+      );
+      $("notice").textContent=
+        "이 브라우저에 조건을 저장했습니다.";
+    }catch{
+      $("notice").textContent=
+        "브라우저가 저장을 허용하지 않습니다.";
+    }
+  };
+
+  $("load").onclick=()=>{
+    try{
+      const raw=localStorage.getItem("physics-notebook-v1");
+
+      if(!raw)throw Error("저장된 조건이 없습니다.");
+
+      const next=JSON.parse(raw);
+      P.normalize(next);
+      apply(next,true);
+
+      $("notice").textContent=
+        "저장한 조건을 불러왔습니다.";
+    }catch(e){
+      $("notice").textContent=e.message;
+    }
+  };
+
+  function runTests(){
+    const report=P.tests();
+
+    try{
+      if(!$("scene").querySelector("[data-body]")){
+        throw Error("초기 물체 없음");
+      }
+
+      if(lesson.steps.length!==8){
+        throw Error("풀이 단계 누락");
+      }
+
+      report.push({
+        name:"화면 초기화: 물체와 8단계 풀이 생성",
+        ok:true
+      });
+    }catch(e){
+      report.push({
+        name:"화면 초기화",ok:false,error:e.message
+      });
+    }
+
+    $("testReport").innerHTML=report.map(r=>`
+      <li>
+        ${r.ok?"✓":"✕"} ${esc(r.name)}
+        ${r.error?" · "+esc(r.error):""}
+      </li>
+    `).join("");
+
+    $("testSummary").textContent=
+      `${report.filter(r=>r.ok).length}/${report.length} 통과`;
+  }
+
+  $("runTests").onclick=runTests;
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
+      playing=false;
+      last=0;
+      paint();
+    }
+  });
+
+  function frame(now){
+    if(playing){
+      if(last){
+        const dt=
+          Math.min((now-last)/1000,0.05)*
+          Number($("speed").value);
+
+        t=Math.min(model.duration,t+dt);
+
+        if(t>=model.duration)playing=false;
+
+        paint();
+      }
+
+      last=now;
+    }else{
+      last=0;
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /*
+   * 향후 AI 튜터 연결용 데이터.
+   * API 키 또는 외부 AI 호출은 포함하지 않는다.
+   * 서버 연결 시 getContext() 결과를 서버로 보내면 된다.
+   */
+  window.PhysicsNotebook={
+    version:"1.0",
+    getContext(){
+      return {
+        schemaVersion:1,
+        type:params.type,
+        conditions:{...params},
+        initial:{...model.initial},
+        current:{...P.at(model,t)},
+        coordinate:lesson.axis,
+        step:{
+          number:step+1,
+          ...lesson.steps[step]
+        },
+        formulas:lesson.formulas,
+        endCondition:model.end
+      };
+    },
+    solve:P.solve,
+    tests:P.tests
+  };
+
+  apply(params,true);
+  runTests();
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener("error",e=>{
+  const box=document.getElementById("error");
+  if(box)box.textContent="실행 오류: "+e.message;
+});
+
+startApp();
+</script>
+</body>
+  </html>
